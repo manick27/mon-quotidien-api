@@ -45,7 +45,12 @@ class CategoryController extends Controller
      */
     public function show($id)
     {
-        //
+        $category = Category::find($id);
+        if ($category) {
+            return response()->json($category);
+        } else {
+            return response()->json(['message' => 'category not found'], 404);
+        }
     }
 
     /**
@@ -57,7 +62,18 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'description' => 'sometimes|string',
+        ]);
+
+        $category = Category::find($id);
+        if ($category) {
+            $category->update($request->all());
+            return response()->json($category);
+        } else {
+            return response()->json(['message' => 'category not found'], 404);
+        }
     }
 
     /**
@@ -68,6 +84,12 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $category = Category::find($id);
+        if ($category) {
+            $category->delete();
+            return response()->json(['message' => 'category deleted']);
+        } else {
+            return response()->json(['message' => 'category not found'], 404);
+        }
     }
 }
