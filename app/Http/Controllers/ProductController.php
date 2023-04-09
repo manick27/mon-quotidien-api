@@ -16,10 +16,12 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $products = product::with('category')->with('user')->get();
+        $products = product::with('category')->get();
+        foreach ($products as $product) {
+            $product->withUrl();
+        }
         return response()->json($products);
     }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -29,13 +31,45 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'quantity' => 'nullable|integer',
+            'price' => 'required|integer',
+            'state' => 'required|string|max:255',
+            'state_description' => 'required|string',
+            'main_image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image2' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image3' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image4' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'user_id' => 'required|integer|exists:users,id',
+            'category_id' => 'required|integer|exists:categories,id',
         ]);
 
-        $post = Post::create($request->all());
-        return response()->json($post, 201);
+        $product = new Product($request->all());
+        // $product = new Product($request->validated());
+
+        $images = ['main_image', 'image1', 'image2', 'image3', 'image4'];
+
+        // Parcourir le tableau et uploader chaque image si elle existe
+        foreach ($images as $image) {
+            if ($request->hasFile($image)) {
+                // Générer un nom unique pour l'image
+                $imageName = time() . '_' . $request->$image->getClientOriginalName();
+
+                // Déplacer l'image dans le dossier public/images
+                $request->$image->move(public_path('images'), $imageName);
+
+                // Enregistrer le chemin de l'image dans l'attribut correspondant du produit
+                $product->$image = $imageName;
+            }
+        }
+
+        // Enregistrer le produit dans la base de données
+        $product->save();
+
+        // Retourner une réponse JSON avec le produit
+        return response()->json(['product' => $product, ], 201);
     }
 
     /**

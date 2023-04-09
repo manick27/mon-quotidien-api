@@ -35,4 +35,14 @@ class Product extends Model
     {
         return $this->belongsTo(Category::class);
     }
+
+    public function withUrl()
+    {
+        $this->main_image = asset('images/' . $this->main_image);
+        $this->image1 = asset('images/' . $this->image1);
+        $this->image2 = asset('images/' . $this->image2);
+        $this->image3 = asset('images/' . $this->image3);
+        $this->image4 = asset('images/' . $this->image4);
+        return $this;
+    }
 }
